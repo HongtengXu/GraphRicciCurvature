@@ -28,15 +28,16 @@ Reference:
 
 """
 import importlib
-import time
 import math
-import ot
+import time
 from multiprocessing import Pool, cpu_count
-from .util import *
 
 import cvxpy as cvx
 import networkx as nx
 import numpy as np
+import ot
+
+from .util import *
 
 EPSILON = 1e-7  # to prevent divided by zero
 
@@ -45,6 +46,9 @@ def _get_all_pairs_shortest_path():
     """
     Pre-compute the all pair shortest paths of the assigned graph G
     """
+
+    global _G
+
     logger.info("Start to compute all pair shortest path.")
     # Construct the all pair shortest path lookup
     if importlib.util.find_spec("networkit") is not None:
@@ -72,6 +76,11 @@ def _get_edge_density_distributions():
     """
     Pre-compute densities distribution for all edges.
     """
+
+    global _apsp
+    global _exp_power
+    global _alpha
+    global _base
 
     logger.info("Start to compute all pair density distribution for graph.")
     densities = dict()
@@ -125,6 +134,10 @@ def _distribute_densities(source, target):
     :param target: Target node.
     :return: (source's neighbors distributions, target's neighbors distributions, cost dictionary).
     """
+
+    global _G
+    global _densities
+    global _apsp
 
     # Append source and target node into weight distribution matrix x,y
     source_nbr = list(_G.predecessors(source)) if _G.is_directed() else list(_G.neighbors(source))
@@ -212,6 +225,8 @@ def _average_transportation_distance(source, target):
     :param target: Target node.
     :return: Average transportation distance.
     """
+    global _alpha
+    global _apsp
 
     t0 = time.time()
     source_nbr = list(_G.predecessors(source)) if _G.is_directed() else list(_G.neighbors(source))
@@ -243,6 +258,7 @@ def _compute_ricci_curvature_single_edge(source, target):
     :return: The Ricci curvature of given edge.
 
     """
+    global _apsp
 
     assert source != target, "Self loop is not allowed."  # to prevent self loop
 
